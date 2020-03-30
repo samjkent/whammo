@@ -1,39 +1,70 @@
 <!doctype html>
 <html>
   <head>
-    <title>Socket.IO chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whammo</title>
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-      #messages { margin-bottom: 40px }
+    #card-table {
+        height: 400px;
+        width: 600px;
+    }
     </style>
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <script>
-      $(function () {
-        var socket = io();
-        $('form').submit(function(){
-          socket.emit('chat message', $('#m').val());
-          $('#m').val('');
-          return false;
-        });
-        socket.on('chat message', function(msg){
-          $('#messages').append($('<li>').text(msg));
-          window.scrollTo(0, document.body.scrollHeight);
-        });
-      });
-    </script>
+    <div id="card-table">
+	</div>
   </body>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="cards.js"></script>
+  <script>
+  function cardClickHandler(card) {
+  	discardPile.addCard(card);
+  	discardPile.render();
+    hands[currentPlayer].removeEventListener("click");
+   
+    currentPlayer++;
+    hands[currentPlayer].click(function(card){
+    })
+  }
+
+  /* Card logic */
+  var currentPlayer = 0;
+  var nPlayers = 3;
+  var hands = [];
+
+  //Start by initalizing the library
+  cards.init({table:'#card-table'});
+  //Create a new deck of cards
+  deck = new cards.Deck(); 
+  //cards.all contains all cards, put them all in the deck
+  deck.addCards(cards.all); 
+  //No animation here, just get the deck onto the table.
+  deck.render({immediate:true});
+
+  // Create hands
+  for(n = 0; n < nPlayers; n++) {
+    hand = new cards.Hand({faceUp:true, x: 100, y: 100 + (n * 150)});
+    hands.push(hand);
+  }
+
+  //Deck has a built in method to deal to hands.
+  deck.deal(5, hands, 50)
+
+  // Create discard pile
+  deck.render();
+  discardPile = new cards.Deck({faceUp:true});
+  discardPile.x += 100;
+  deck.render({callback:function() {
+  	discardPile.addCard(deck.topCard());
+  	discardPile.render();
+  }});
+
+  //Lets allow you to send cards to the discard pile    
+  hands.forEach((hand, index) => {
+    hand.click(function(card){
+        card.popUpDown();
+    });
+  });
+
+  </script>
 </html>

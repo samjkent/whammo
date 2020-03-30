@@ -1,0 +1,139 @@
+<html>
+    <head>
+        <script src="whammo.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="cards.css">
+    </head>
+    <body>
+        <div>
+            <input id="player_name" placeholder="name" />
+            <button onClick="createPlayer()">Add</button>
+        </div>
+        <div>
+            <button onClick="deal()">Deal</button>
+        </div>
+        <h1>Variables</h1>
+        <div id="variables">
+        </div>
+        <script>
+        // IMPLEMENTATION
+        
+        /*
+         * Return a HTML string of cards to click
+         */
+        function drawHand(hand) {
+            var html = "";
+            hand.forEach((card, index) => {
+                html += '<a href="#" class="card s' + card + '" name="'+index+'" onClick="selectCard(this)">&nbsp;</a> ';
+            });
+            return html;
+        }
+    
+        /*
+         * Create a player from input
+         */
+        function createPlayer() {
+            addPlayer(new Player(players.length, document.getElementById("player_name").value, []));
+        }
+        
+        /*
+         * Return a HTML string of selected cards
+         */
+        function drawSelected(selected) {
+            var html = "";
+            selected.forEach((card, index) => {
+                html += '<a href="#" class="card s' + card + '" name="'+index+'" onClick="deselectCard(this)">&nbsp;</a> ';
+            });
+            return html;
+        }
+        
+        /*
+         * Select a card
+         */
+        function selectCard(card) {
+            var player = $(card).parent().attr('id');
+            var c = $(card).attr('name');
+            players[player].selected.push(players[player].hand.splice(c, 1).pop());
+        }
+        
+        /*
+         * Deselect a card
+         */
+        function deselectCard(card) {
+            var player = $(card).parent().attr('id');
+            var c = $(card).attr('name');
+            players[player].hand.push(players[player].selected.splice(c, 1).pop());
+        }
+
+        /*
+         * Draw whammo button
+         */
+        function drawWhammoButton(total) {
+            if(total < 6) {
+                return '<button onClick="whammoHelper(this)">Whammo</button>';
+            } else {
+                return total;
+            }
+        }
+
+        /*
+         * Whammo helper 
+         */ 
+        function whammoHelper(button) {
+            console.log(button);
+        }
+
+        /*
+         * Log variables
+         */
+        function logVariables() {
+            var log = setInterval(function() {
+        
+                var vars = "<ul>";
+                players.forEach((player, index) => { 
+                        var turn_css = "";
+                        if(index == turn) { turn_css = "turn"; }
+                        vars += '<li id="' + index + '" class="'+turn_css+'">'  + player.name + ": " + drawHand(player.hand) + " | Total: " + drawWhammoButton(totalHand(player.hand)) + " | " + drawSelected(player.selected) + ' <a href="#" class="'+(turn_css == "" ? "hidden" : "")+' card top-of-deck" onClick="playCardsHelper(this, 0)">&nbsp;</a> <a href="#" class="'+(turn_css == "" ? "hidden" : "")+' card s' + last_hand[last_hand.length - 1] + '" onClick="playCardsHelper(this, 1)">&nbsp;</a></li>';
+                });
+                vars += "</ul>";
+
+                vars += '<h2>Last play</h2>';
+                last_hand.forEach((card, index) => {
+                    vars += '<a>' + card + '</a>, ';
+                });
+
+                document.getElementById("variables").innerHTML = vars;
+            }, 1000);
+        }
+
+        /*
+         * Play cards helper
+         */
+        function playCardsHelper(e, pick) {
+            var player = $(e).parent().attr("id");
+            var last_hand_tmp = last_hand;
+
+            if(playCards(player, players[player].selected)) {
+                players[player].selected = [];
+
+                    if(pick) {
+                        players[player].hand.push(last_hand_tmp.pop());
+                    } else {
+                        players[player].hand.push(takeFromDeck());
+                    }
+
+            } else {
+                alert("Invalid cards selected");
+            }
+        }
+
+        
+        /*
+         * onLoad
+         */
+        window.onload = function() {
+            logVariables();
+        };
+        </script>
+    </body>
+</html>
